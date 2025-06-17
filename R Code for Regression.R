@@ -1,4 +1,3 @@
-install.packages("estimatr")
 library(estimatr)
 
 setwd("C:/Users/rahul/Downloads/DATA FOR FINAL")
