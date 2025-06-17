@@ -1,0 +1,165 @@
+install.packages("estimatr")
+library(estimatr)
+
+setwd("C:/Users/rahul/Downloads/DATA FOR FINAL")
+democracy_aid <- read.csv("dem_aid_2.csv")
+
+library(dplyr)
+
+View(democracy_aid)
+
+names(democracy_aid)
+
+democracy_aid <- democracy_aid %>%
+  arrange(country, year) %>%
+  group_by(country) %>%
+  mutate(
+    lag_total_aid_per_capita   = lag(aid_per_capita, 1),
+    lag_econdev_aid            = lag(econdev_aid, 1),
+    lag_health_aid             = lag(health_aid, 1),
+    lag_education_social_aid   = lag(education_social_aid, 1),
+    lag_democracy_rights_aid   = lag(democracy_rights_aid, 1),
+    lag_humanitarian_aid       = lag(humanitarian_aid, 1),
+    lag_environment_aid        = lag(environment_aid, 1),
+    lag_peace_security_aid     = lag(peace_security_aid, 1),
+    lag_multi_sector_aid       = lag(multi_sector_aid, 1),
+    lag_program_support_aid    = lag(program_support_aid, 1)
+  ) %>%
+  ungroup()
+
+democracy_aid2 <- democracy_aid %>%
+  arrange(country, year) %>%
+  group_by(country) %>%
+  mutate(
+    lag_total_aid_per_capita2   = lag(aid_per_capita, 2),
+    lag_econdev_aid2            = lag(econdev_aid, 2),
+    lag_health_aid2             = lag(health_aid, 2),
+    lag_education_social_aid2   = lag(education_social_aid, 2),
+    lag_democracy_rights_aid2   = lag(democracy_rights_aid, 2),
+    lag_humanitarian_aid2       = lag(humanitarian_aid, 2),
+    lag_environment_aid2        = lag(environment_aid, 2),
+    lag_peace_security_aid2     = lag(peace_security_aid, 2),
+    lag_multi_sector_aid2       = lag(multi_sector_aid, 2),
+    lag_program_support_aid2    = lag(program_support_aid, 2)
+  ) %>%
+  ungroup()
+
+lm_robust(
+  democracy_score ~ lag_total_aid_per_capita + conflict_present,
+  data = democracy_aid,
+  fixed_effects = ~ country + year,
+  clusters = country,
+  se_type = "CR2"
+)
+
+lm_robust(
+  democracy_score ~ lag_econdev_aid + lag_health_aid + lag_education_social_aid +
+    lag_democracy_rights_aid + lag_humanitarian_aid + lag_environment_aid +
+    lag_peace_security_aid + lag_multi_sector_aid + lag_program_support_aid +
+    conflict_present,
+  data = democracy_aid,
+  fixed_effects = ~ country + year,
+  clusters = country,
+  se_type = "CR2",
+  alpha = 0.05,
+  ci = TRUE
+)
+
+
+lm_robust(
+  democracy_score ~ lag_total_aid_per_capita2 + conflict_present,
+  data = democracy_aid2,
+  fixed_effects = ~ country + year,
+  clusters = country,
+  se_type = "CR2"
+)
+
+lm_robust(
+  democracy_score ~ lag_econdev_aid2 + lag_health_aid2 + lag_education_social_aid2 +
+    lag_democracy_rights_aid2 + lag_humanitarian_aid2 + lag_environment_aid2 +
+    lag_peace_security_aid2 + lag_multi_sector_aid2 + lag_program_support_aid2 +
+    conflict_present,
+  data = democracy_aid2,
+  fixed_effects = ~ country + year,
+  clusters = country,
+  se_type = "CR2",
+  alpha = 0.05,
+  ci = TRUE
+)
+
+
+# Run interaction model
+lm_robust(
+  democracy_score ~ lag_total_aid_per_capita * Region + conflict_present,
+  data = democracy_aid,
+  fixed_effects = ~ country + year,
+  clusters = country,
+  se_type = "CR2"
+)
+
+# Run interaction model
+lm_robust(
+  democracy_score ~ lag_total_aid_per_capita2 * Region + conflict_present,
+  data = democracy_aid2,
+  fixed_effects = ~ country + year,
+  clusters = country,
+  se_type = "CR2"
+)
+
+# Ensure Region is a factor
+democracy_aid$Region <- as.factor(democracy_aid$Region)
+
+# Run interaction model
+lm_robust(
+  democracy_score ~ lag_total_aid_per_capita * Income_group + conflict_present,
+  data = democracy_aid,
+  fixed_effects = ~ country + year,
+  clusters = country,
+  se_type = "CR2"
+)
+
+# Run interaction model
+lm_robust(
+  democracy_score ~ lag_total_aid_per_capita2 * Income_group + conflict_present,
+  data = democracy_aid2,
+  fixed_effects = ~ country + year,
+  clusters = country,
+  se_type = "CR2"
+)
+
+
+glimpse(democracy_aid)  # See that all columns exist and are named correctly
+
+# Define the column names you want to transform
+aid_categories <- c(
+  "aid_per_capita",                 # already per capita, skip this in division
+  "econdev_aid",
+  "health_aid",
+  "education_social_aid",
+  "democracy_rights_aid",
+  "humanitarian_aid",
+  "environment_aid",
+  "peace_security_aid",
+  "multi_sector_aid",
+  "program_support_aid"
+)
+
+# Create per capita variables (dividing by 'population')
+democracy_aid <- democracy_aid %>%
+  mutate(across(
+    c("econdev_aid", "health_aid", "education_social_aid", "democracy_rights_aid",
+      "humanitarian_aid", "environment_aid", "peace_security_aid",
+      "multi_sector_aid", "program_support_aid"),
+    ~ .x / population,
+    .names = "{.col}_per_capita"
+  ))
+
+democracy_aid
+
+mean(democracy_aid$aid_per_capita)
+
+low_income_df <- subset(democracy_aid, Income_group == "Low income")
+mean(low_income_df$aid_per_capita)
+
+lowmid_income_df <- subset(democracy_aid, Income_group == "Lower middle income")
+mean(lowmid_income_df$aid_per_capita)
