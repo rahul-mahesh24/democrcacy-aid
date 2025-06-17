@@ -86,7 +86,6 @@ lm_robust(
 )
 
 
-# Run interaction model
 lm_robust(
   democracy_score ~ lag_total_aid_per_capita * Region + conflict_present,
   data = democracy_aid,
@@ -95,7 +94,6 @@ lm_robust(
   se_type = "CR2"
 )
 
-# Run interaction model
 lm_robust(
   democracy_score ~ lag_total_aid_per_capita2 * Region + conflict_present,
   data = democracy_aid2,
@@ -107,7 +105,7 @@ lm_robust(
 # Ensure Region is a factor
 democracy_aid$Region <- as.factor(democracy_aid$Region)
 
-# Run interaction model
+
 lm_robust(
   democracy_score ~ lag_total_aid_per_capita * Income_group + conflict_present,
   data = democracy_aid,
@@ -116,7 +114,7 @@ lm_robust(
   se_type = "CR2"
 )
 
-# Run interaction model
+
 lm_robust(
   democracy_score ~ lag_total_aid_per_capita2 * Income_group + conflict_present,
   data = democracy_aid2,
